@@ -1,0 +1,25 @@
+name: 定时清理图库
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: 删除超时图片
+        run: |
+          find imgs -type f -name .gitkeep -prune -o -type f -mtime +3 -print -delete
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add -A imgs
+          git diff --cached --quiet || git commit -m auto-cleanup
+          git push
+
